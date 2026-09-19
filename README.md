@@ -134,8 +134,9 @@ loginctl enable-linger "$USER"
 
 ```console
 uv sync --all-groups
-uv run pytest
-uvx ruff check .
+uv run --frozen pytest
+uv run --frozen ruff check .
+uv run --frozen pyrefly check
 ```
 
 The router API is undocumented and firmware-specific. Re-run `discover` and
