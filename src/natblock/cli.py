@@ -30,7 +30,7 @@ def settings(path: Path) -> Config:
 
 
 def router_for(config: Config) -> RouterClient:
-    return RouterClient(config.router_url, config.password_file)
+    return RouterClient(config.router_url, config.password_file, config.state_file.with_name("router.lock"))
 
 
 def active_snooze(config: Config, now: datetime) -> datetime | None:

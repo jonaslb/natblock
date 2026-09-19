@@ -1,6 +1,8 @@
+from pathlib import Path
+
 import pytest
 
-from natblock.router import Device, Profile, owned_profile
+from natblock.router import Device, Profile, RouterClient, owned_profile
 
 
 def profile(*macs: str) -> Profile:
@@ -51,3 +53,17 @@ def test_profile_derives_macs_from_router_client_list() -> None:
         }
     )
     assert result.device_macs == ["02-00-00-00-00-01"]
+
+
+def test_router_client_uses_private_lock_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    password_file = tmp_path / "password"
+    password_file.write_text("secret")
+    lock_file = tmp_path / "state" / "router.lock"
+    client = RouterClient("http://router.invalid", password_file, lock_file)
+    monkeypatch.setattr(client._router, "authorize", lambda: None)
+    monkeypatch.setattr(client._router, "logout", lambda: None)
+
+    with client.session():
+        assert lock_file.exists()
+
+    assert lock_file.stat().st_mode & 0o777 == 0o600

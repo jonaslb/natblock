@@ -27,7 +27,8 @@ blocks only its internet access. `natblock` refuses to modify its named profile
 unless that profile contains exactly the configured MAC address.
 
 The router permits only one web-management session at a time. `natblock` logs
-out promptly, but it can briefly conflict with an open administration session.
+out promptly and serializes its own requests, but it can briefly conflict with
+an open administration session. A failed timer run is retried at the next tick.
 
 ## Requirements
 

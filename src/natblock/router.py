@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Iterator
 from contextlib import contextmanager
+from fcntl import LOCK_EX, LOCK_UN, flock
 from pathlib import Path
 from urllib.parse import urlencode
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from tplinkrouterc6u import TplinkRouterSG
+from tplinkrouterc6u import ClientError, ClientException, TplinkRouterSG
 
 PARENTAL_CONTROL_PATH = "admin/avira_parental_control?form=avira_pactrl"
 
@@ -59,7 +61,7 @@ class Profile(BaseModel):
 
 
 class RouterClient:
-    def __init__(self, router_url: str, password_file: Path) -> None:
+    def __init__(self, router_url: str, password_file: Path, lock_file: Path) -> None:
         try:
             password = password_file.read_text().strip()
         except OSError as error:
@@ -67,14 +69,24 @@ class RouterClient:
         if not password:
             raise RuntimeError(f"router password file is empty: {password_file}")
         self._router = TplinkRouterSG(router_url, password, timeout=15)
+        self._lock_file = lock_file
 
     @contextmanager
     def session(self) -> Iterator[RouterClient]:
-        self._router.authorize()
-        try:
-            yield self
-        finally:
-            self._router.logout()
+        self._lock_file.parent.mkdir(parents=True, exist_ok=True)
+        with self._lock_file.open("a+") as lock:
+            os.chmod(self._lock_file, 0o600)
+            flock(lock, LOCK_EX)
+            try:
+                self._router.authorize()
+                try:
+                    yield self
+                finally:
+                    self._router.logout()
+            except (ClientError, ClientException) as error:
+                raise RuntimeError(f"router request failed: {error}") from error
+            finally:
+                flock(lock, LOCK_UN)
 
     def _request(self, **parameters: str) -> dict[str, object]:
         result = self._router.request(PARENTAL_CONTROL_PATH, urlencode(parameters))
