@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from fcntl import LOCK_EX, LOCK_UN, flock
 from pathlib import Path
@@ -72,7 +72,7 @@ class RouterClient:
         self._lock_file = lock_file
 
     @contextmanager
-    def session(self) -> Iterator[RouterClient]:
+    def session(self) -> Generator[RouterClient]:
         self._lock_file.parent.mkdir(parents=True, exist_ok=True)
         with self._lock_file.open("a+") as lock:
             os.chmod(self._lock_file, 0o600)
@@ -96,7 +96,10 @@ class RouterClient:
 
     def devices(self) -> list[Device]:
         data = self._request(operation="getDevicesList")
-        return [Device.model_validate(item) for item in data.get("clientList", [])]
+        clients = data.get("clientList", [])
+        if not isinstance(clients, list):
+            raise TypeError("router returned an invalid client list")
+        return [Device.model_validate(item) for item in clients]
 
     def profiles(self) -> list[Profile]:
         data = self._request(operation="getOwnerTotalData")
