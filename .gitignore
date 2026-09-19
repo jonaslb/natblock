@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+dist/
+*.pyc
+config.toml
+state.json
+router_pass.txt
+.README.md.swp
+toolbox/

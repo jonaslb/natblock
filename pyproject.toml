@@ -1,0 +1,27 @@
+[project]
+name = "natblock"
+version = "0.1.0"
+description = "Schedule per-device internet access through a TP-Link router"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "pydantic>=2.11,<3",
+    "tplinkrouterc6u==5.34.0",
+    "typer>=0.16,<1",
+]
+
+[project.scripts]
+natblock = "natblock.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4,<9",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

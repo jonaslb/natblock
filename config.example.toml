@@ -1,0 +1,14 @@
+router_url = "http://192.168.0.1"
+password_file = "router_pass.txt"
+device_mac = "02-00-00-00-00-01"
+device_name = "Living Room TV"
+profile_name = "natblock"
+timezone = "Europe/London"
+state_file = "~/.local/state/natblock/state.json"
+
+# Days name the day on which a window starts. This example blocks Sunday
+# through Thursday nights from 22:00 until 07:00 the following morning.
+[[block_windows]]
+days = ["sun", "mon", "tue", "wed", "thu"]
+start = "22:00"
+end = "07:00"

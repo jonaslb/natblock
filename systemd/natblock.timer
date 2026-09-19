@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodically reconcile per-device internet access
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+Persistent=true
+RandomizedDelaySec=10s
+
+[Install]
+WantedBy=timers.target
